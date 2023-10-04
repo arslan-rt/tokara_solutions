@@ -1,0 +1,43 @@
+<div>
+    <div class="record">
+        {{#each this.view.meta.panels}}
+            {{#unless header}}
+                <div class="row-fluid record-panel {{#if hide}}hide{{/if}}" data-panelname="{{name}}">
+                    {{#if label}}
+                        <div class="row-fluid record-panel-header panel-inactive" tabindex="-1">
+                            <h4 class="pull-left">
+                                {{str label ../../this.module}}
+                            </h4>
+                        </div>
+                    {{/if}}
+                    <div class="row-fluid record-panel-content">
+                        {{#each grids}}
+                            <div class="row-fluid {{../name}}">
+                                {{#each this}}
+                                    <div class="span{{span}} record-cell {{css_class}}" data-type="{{type}}"
+                                        data-name="{{name}}">
+                                        {{#if ../../labels}}
+                                            {{#unless dismiss_label}}
+                                                <div class="record-label" data-name="{{name}}">
+                                                    {{#if label}}
+                                                        {{str label ../../../../../../view.module}}
+                                                    {{/if}}
+                                                </div>
+                                            {{/unless}}
+                                        {{/if}}
+                                        {{#if name}}
+                                            <span class="normal index{{index}}" {{#if name}} data-fieldname="{{name}}"
+                                                {{/if}} data-index="{{index}}">
+                                                {{field ../../../../../this.view model=../../../../../this.view.model template=view}}
+                                            </span>
+                                        {{/if}}
+                                    </div>
+                                {{/each}}
+                            </div>
+                        {{/each}}
+                    </div>
+                </div>
+            {{/unless}}
+        {{/each}}
+    </div>
+</div>

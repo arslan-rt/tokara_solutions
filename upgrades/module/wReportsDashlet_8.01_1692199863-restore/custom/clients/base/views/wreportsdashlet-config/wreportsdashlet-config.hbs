@@ -1,0 +1,30 @@
+{{#if dataFetched}}
+    {{#if loadDataErr}}
+        <div class="block-footer">
+            <span class="error-message">
+                {{str "LBL_WREPORTSDASHLET_LOAD_SETTINGS_ERROR"}}
+            </span>
+            <span class="exit-page">
+                <a href="#Home">
+                    {{str "LBL_WREPORTSDASHLET_EXIT_PAGE"}}
+                </a>
+            </span>
+        </div>
+    {{else}}
+        {{partial "headerpane.wreportsdashlet-config" this view=this}}
+
+        {{#eq meta.style "horizontal"}}
+            {{partial "horizontal.wreportsdashlet-config" this view=this}}
+        {{/eq}}
+        {{#eq meta.style "accordion"}}
+            {{partial "accordion.wreportsdashlet-config" this view=this}}
+        {{/eq}}
+        {{#eq meta.style "default"}}
+            {{partial "default.wreportsdashlet-config" this view=this}}
+        {{/eq}}
+    {{/if}}
+{{else}}
+    <div class="block-footer">
+        <i class="fa fa-spinner fa-spin fa-3x fa-fw"></i>
+    </div>
+{{/if}}

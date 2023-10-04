@@ -1,0 +1,63 @@
+<style>
+  .left-menu {
+    width: 50px;
+    background-color: #f3f5f6; 
+    display: inline-block; 
+    position: absolute; 
+    left: 0px; 
+    top: 0px; 
+    height: 100%;
+    -webkit-transition: width 12s, height 4s; /* For Safari 3.1 to 6.0 */
+    transition: width 12s, height 4s;
+  }
+
+.boxes {
+  margin: auto;
+  padding: 50px;
+  background: #484848;
+}
+
+.fix-element-in-middle {
+  position: absolute;
+  left: 25%;
+  top: 30%;
+}
+
+.element-detector-input { display: none }
+.element-detector-label {}
+
+input[class="element-detector-input"]:checked ~ div {
+  padding-left: 45px;
+}
+
+input[class="element-detector-input"]:checked ~ label {
+  -webkit-transition:all 0.1s linear;
+  -moz-transition:all 0.1s linear;
+  -o-transition:all 0.1s linear;
+  -ms-transition:all 0.1s linear;
+  transition:all 0.1s linear;
+  display: block !important;
+  width: 50px;
+  margin-left: 0px;
+}
+input[class="element-detector-input"] ~ label {
+  /* we have to keep unset display when the checkbox is hidden
+  to be able to get the slow show effect */
+  display: unset; 
+  margin-left: -50px;
+}
+
+input[class="element-detector-input"] ~ div {
+  padding-left: 0px;
+}
+
+.element-hide {
+  display: none;
+}
+</style>
+
+<input type="checkbox" attrfordetection="checkbox" class="element-detector-input"></input>
+<label class="left-menu element-detector-label">
+  <i style="color: #2b79c8;position: absolute;left: 50%;top: 50%;-webkit-transform: translate(-50%, -50%);transform: translate(-50%, -50%);background-color: transparent;/* border-radius: 10px; */font-size: 1.30em;"
+    class="fas fa-check" aria-hidden="true"></i>
+</label>

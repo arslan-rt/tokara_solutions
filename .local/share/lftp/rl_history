@@ -1,0 +1,30 @@
+ 1692743654
+lftp pcandela@ftp.w-systems.com
+ 1692743660
+cd bluegrass/
+ 1692743663
+get "wDrillDownReportsCharts v10.30.zip"
+ 1692743667
+ls -l
+ 1692743682
+get "wDrillDownReportsCharts v10.30.zip"
+ 1692743711
+exit
+ 1692743866
+lftp pcandela@ftp.w-systems.com
+ 1692743871
+cd bluegrass/
+ 1692743875
+get wReportsDashlet\ v6.15.zip 
+ 1692743877
+exit
+ 1692744033
+lftp pcandela@ftp.w-systems.com
+ 1692744037
+cd bluegrass/
+ 1692744039
+ls
+ 1692744047
+get "wEnhancedScheduledReports v5.02.zip"
+ 1692744049
+exit

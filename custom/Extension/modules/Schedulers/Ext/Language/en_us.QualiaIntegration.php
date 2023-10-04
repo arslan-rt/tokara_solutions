@@ -1,0 +1,2 @@
+<?php
+$mod_strings["LBL_SUGARCRM_SUGARCRM_CUSTOM_WSYSTEMS_QUALIAINTEGRATION_JOBS_INSERTFAILEDRECORD"] = "Qualia - Insert failed records";

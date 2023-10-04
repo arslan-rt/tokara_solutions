@@ -1,0 +1,31 @@
+<table style="min-width:{{minTableWidth}}" border="0" cellpadding="0" cellspacing="0" class="wReportsDashletGrandTotalHead">  
+    <thead>
+        <tr style="width: 100%;">
+            <th class="row-column" style="text-align:left;border-width:1px;border-style:solid;border-color:#e9e9e9;background-color: #f6f6f6;">
+                <a class="rowHeader" name="view-saved-report-list-grand-total-view369-<no-id>/Home/bean:Home/e9a0ecf6-c971-11e6-bc95-000c29eb6790/coll:Home-0" style="border-style: none;border-color:#e9e9e9; color:#666;font-size: 13px;font-weight: bolder;" tabindex="-1">
+                    {{str 'LBL_WRD_GRAND_TOTAL'}}
+                </a>
+            </th>
+        </tr>
+    </thead>
+</table>
+<table style="min-width:{{minTableWidth}}" border="0" cellpadding="0" cellspacing="0" class='reportDataChildtablelistView row-report wReportTable'>  
+    <tbody>
+        <tr>
+            {{#each columns}}
+                <th class='row-column' style="text-align:left; border-width:1px; border-style:solid; border-color:#e9e9e9;">
+                    <a class="rowHeader" name="{{this}}" style="border-style: none;border-color:#e9e9e9; color:#666;font-size: 13px;font-weight: bolder;" tabindex="-1">
+                        {{this}}
+                    </a>
+                </th>
+            {{/each}}
+        </tr>
+        <tr>
+            {{#each values}}
+                <td class='row-column' style="text-align:left; border-width:1px; border-color:#e9e9e9; border-style:solid">
+                    {{this}}
+                </td>
+            {{/each}}
+        </tr>
+    </tbody>
+</table>

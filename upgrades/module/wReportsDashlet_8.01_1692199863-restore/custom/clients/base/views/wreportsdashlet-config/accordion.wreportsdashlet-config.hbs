@@ -1,0 +1,40 @@
+<div class="accordion" id="config-accordion">
+    {{#each this.view.meta.panels}}
+        {{#unless header}}
+            <div class="accordion-group {{#if hide}}hide{{/if}}" data-panelname="{{name}}">
+                <div class="accordion-heading">
+                    <a class="accordion-toggle" data-toggle="collapse" href="#{{name}}Collapse{{@index}}">
+                        <span>
+                            <strong>{{str label ../../this.module}}</strong>
+                        </span>
+                    </a>
+                </div>
+                <div id="{{name}}Collapse{{@index}}" class="accordion-body {{#unless collapsed}}in{{/unless}} collapse">
+                    <div class="accordion-inner">
+                        <div class="record">
+                            {{#each grids}}
+                                <fieldset class="row-fluid panel_body">
+                                    {{#each this}}
+                                        <div class="span{{span}} {{css_class}} record-cell" data-type="{{type}}"
+                                            data-name="{{name}}">
+                                            {{#if ../../labels}}
+                                                {{#unless dismiss_label}}
+                                                    <div class="record-label" data-name="{{name}}">
+                                                        {{str label ../../../../../../view.module}}
+                                                    </div>
+                                                {{/unless}}
+                                            {{/if}}
+                                            <span class="normal index" data-fieldname="{{name}}" data-index="">
+                                                {{field ../../../../this.view model=../../../../this.view.model template=view}}
+                                            </span>
+                                        </div>
+                                    {{/each}}
+                                </fieldset>
+                            {{/each}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {{/unless}}
+    {{/each}}
+</div>

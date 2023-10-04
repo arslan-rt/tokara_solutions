@@ -1,0 +1,31 @@
+{{!--
+/*
+ * Your installation or use of this SugarCRM file is subject to the applicable
+ * terms available at
+ * http://support.sugarcrm.com/06_Customer_Center/10_Master_Subscription_Agreements/.
+ * If you do not agree to all of the applicable terms or do not have the
+ * authority to bind the entity as an authorized representative, then do not
+ * install or use this SugarCRM file.
+ *
+ * Copyright (C) SugarCRM Inc. All rights reserved.
+ */
+--}}
+
+{{#if showDrilldownButton}}
+	<table id="drilldownButtonTable"
+		style="width: 100%;border-width: 1px;border-style: solid;border-bottom-style: none;border-color:#e9e9e9;">
+		<tbody>
+			<tr>
+				<td style="text-align: left;background: #f6f6f6;">
+					<button class="btn btn-primary" id="drill_button"
+						style="margin-top: 1px;margin-bottom: 1px;margin-left: 1px;">{{str 'LBL_WRD_DRILL_DOWN'}}
+					</button>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+{{/if}}
+<div id='loadingFeedback'>
+</div>
+<div id='saved_report_list_contents'>
+</div>

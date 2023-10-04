@@ -1,0 +1,28 @@
+<div id="userProfileView">
+    <div class="field" field-name="url" field-type="url" style="margin-left: 5px;margin-top: 10px;">
+        <div class="field__controls">
+            <label class="field__label settings__control_label_url">Server URL</label>
+            <span class="input-wrapper">
+                <input id="urlInput" type="url" class="login_settings_server_url"
+                    placeholder="your-wMobileForSugarCRM-instance.com" value="{{_url}}" autocapitalize="off"
+                    autocorrect="off" autocomplete="off">
+                <i class="icondefault icon icon-remove clear-button"></i>
+            </span>
+        </div>
+        <div class="field__controls">
+            <label class="field__label settings__control_label_url">User</label>
+            <span class="input-wrapper">
+                <input id="userInput" type="text" class="login_settings_server_url" placeholder="username"
+                    value="{{_user}}" autocapitalize="off" autocorrect="off" autocomplete="off">
+                <i class="icondefault icon icon-remove clear-button"></i>
+            </span>
+        </div>
+    </div>
+    {{#if _canChoose}}
+        <a id="chooseProfile" class="btn" style="float: right;color: green;"><i class="fas fa-check"
+                style="color: green;"></i>&nbsp; Use
+            Profile</a>
+    {{else}}
+        <a id="chooseProfile" class="btn" style="float: right;color: green;">In Use...</a>
+    {{/if}}
+</div>

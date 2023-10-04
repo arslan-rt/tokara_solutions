@@ -1,0 +1,172 @@
+<?php
+/*
+ * Your installation or use of this SugarCRM file is subject to the applicable
+ * terms available at
+ * http://support.sugarcrm.com/06_Customer_Center/10_Master_Subscription_Agreements/.
+ * If you do not agree to all of the applicable terms or do not have the
+ * authority to bind the entity as an authorized representative, then do not
+ * install or use this SugarCRM file.
+ *
+ * Copyright (C) SugarCRM Inc. All rights reserved.
+ */
+
+use Sugarcrm\Sugarcrm\AccessControl\AccessControlManager;
+use Sugarcrm\Sugarcrm\custom\wsystems\wReportsDashlet\Manager;
+use Sugarcrm\Sugarcrm\custom\wsystems\wReportsDashlet\Traits;
+
+class wReportsDashletApi extends SugarApi
+{
+    use Traits\ModuleConfigTrait;
+
+    public function registerApiRest()
+    {
+        return array(
+            "getListSavedReports"        => array(
+                "reqType"   => "GET",
+                "path"      => array("wReportsDashlet", "list", "reports"),
+                "pathVars"  => array("", ""),
+                "method"    => "getSavedReports",
+                "shortHelp" => "Returns items from the saved_reports table based on a few criteria",
+                "longHelp"  => "modules/Reports/clients/base/api/help/ReportsDashletApiGetSavedReports.html",
+            ),
+            "getSavedReportListViewById" => array(
+                "reqType"   => "POST",
+                "path"      => array("wReportsDashlet", "list", "results"),
+                "pathVars"  => array("", ""),
+                "method"    => "getSavedReportListViewById",
+                "shortHelp" => "Updates a ForecastWorksheet model",
+                "longHelp"  => "modules/Reports/clients/base/api/help/ReportsDashletApiGetSavedReportById.html",
+            ),
+
+            "getwReportsDashletSettings" => array(
+                "reqType"   => "GET",
+                "path"      => array("wReportsDashlet", "settings", "get"),
+                "pathVars"  => array("", ""),
+                "method"    => "settingsGet",
+                "shortHelp" => "Get the saved settings",
+                "longHelp"  => "modules/Reports/clients/base/api/help/ReportsDashletApiGetSavedReportById.html",
+            ),
+
+            "setwReportsDashletSettings" => array(
+                "reqType"   => "POST",
+                "path"      => ["wReportsDashlet", "settings", "set"],
+                "pathVars"  => ["", "", ""],
+                "method"    => "settingsSet",
+                "shortHelp" => "Saves settings within custom config table.",
+                "longHelp"  => "",
+            ),
+        );
+    }
+
+    /**
+     * Retrieves all saved reports that meet args-driven criteria
+     *
+     * @param ServiceBase $api The API class of the request
+     * @param array $args The arguments array passed in from the API
+     *
+     * @return array
+     */
+    public function getSavedReports(ServiceBase $api, array $args)
+    {
+        // Make sure the user isn"t seeing reports they don"t have access to
+        require_once "modules/Reports/SavedReport.php";
+        $modules = array_keys(getACLDisAllowedModules());
+
+        $sq = new SugarQuery();
+        $sq->from(BeanFactory::getBean("Reports"));
+        $sq->select(array("id", "name", "module", "content", "report_type", "chart_type"));
+        $sq->orderBy("name", "asc");
+
+        // if there were restricted modules, add those to the query
+        if (count($modules)) {
+            $sq->where()->notIn("module", $modules);
+        }
+
+        // Get the list of inaccessible reports and exculde them from the search
+        $inaccessibleList = AccessControlManager::instance()->getNotAccessibleRecords("Reports");
+        if (count($inaccessibleList) > 0) {
+            $sq->where()->notIn("id", $inaccessibleList);
+        }
+
+        $sq->where()->in("report_type", array("tabular", "summary", "detailed_summary", "matrix"));
+
+        return $sq->execute();
+    }
+
+    /**
+     * Retrieves a saved report and chart data, given a report ID in the args
+     *
+     * @param ServiceBase $api
+     * @param array $args
+     *
+     * @return stdClass
+     */
+    public function getSavedReportListViewById(ServiceBase $api, array $args)
+    {
+        $contextData         = $args["contextData"];
+        $reportId            = $contextData["reportId"];
+        $forceRefresh        = $contextData["forceRefresh"];
+        $linkToCurrentRecord = $contextData["linkToCurrentRecord"];
+        $usePaging           = $contextData["usePaging"];
+        $sortDefinition      = false;
+
+        $manager = new Manager();
+        $report  = $manager->getReport($reportId);
+
+        if ($report instanceof \SugarBean === false) {
+            return array(
+                "status"   => "failed",
+                "message"  => "LBL_INVALID_REPORT_ID",
+                "reportId" => $reportId,
+            );
+        }
+
+        if (array_key_exists("sort", $contextData)) {
+            $fieldToSortOn  = $contextData["sort"]["name"];
+            $sortTableKey   = $contextData["sort"]["table_key"];
+            $sortDirection  = $contextData["sort"]["sort_dir"];
+            $sortDefinition = array(
+                "name"      => $fieldToSortOn,
+                "table_key" => $sortTableKey,
+                "sort_dir"  => $sortDirection,
+            );
+            $report->report_def["order_by"] = array(
+                $sortDefinition,
+            );
+        }
+
+        return $manager->getReportData(
+            $reportId,
+            $forceRefresh,
+            $linkToCurrentRecord,
+            $usePaging,
+            $sortDefinition,
+            $contextData
+        );
+    }
+
+    /**
+     *
+     * @param ServiceBase $api
+     * @param array $args
+     *
+     * @return array
+     */
+    public function settingsSet(ServiceBase $api, array $args): array
+    {
+        return $this->modConfigSet($args["data"], array("isCurrentUser" => true));
+    }
+
+    /**
+     *
+     * @param ServiceBase $api
+     * @param array $args
+     *
+     * @return array
+     */
+    public function settingsGet(ServiceBase $api, array $args): array
+    {
+        return $this->modConfigGet();
+    }
+
+}

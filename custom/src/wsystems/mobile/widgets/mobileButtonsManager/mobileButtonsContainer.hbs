@@ -1,0 +1,51 @@
+<div style="position:absolute;width:100%;height:100%;z-index:9000;display:none;" id="mobileButtonsOverlay"></div>
+<div id="mobileButtonsContainer" style="position:absolute;z-index:9999;height:100px;width:100px;"></div>
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css" integrity="sha384-5sAR7xN1Nv6T6+dT2mhtzEpVJvfS3NScPQTrOxhwjIuvcA67KV2R5Jz6kr4abQsz" crossorigin="anonymous">
+<style>
+body {
+--l: 4em;
+}
+
+.masterButton {
+display: none;
+}
+
+.masterButton + label {
+cursor: pointer;
+position: absolute;
+right: 1em; bottom: 1em;
+background-color: tomato;
+height: var(--l); width: var(--l);
+border-radius: 50%;
+z-index: 2;
+}
+
+.masterButton:checked + label:before { transform: rotatez(-45deg); }
+
+.masterButton:checked + label:after { transform: rotatez(-45deg); }
+
+.mobileButton {
+cursor: pointer;
+position: absolute;
+right: 1em; bottom: 1em;
+padding: 1em;
+width: 1em; height: 1em;
+border-radius: 50%;
+opacity: 0;
+z-index: 1;
+transform: rotateZ(90deg);
+font-size: 1em;
+color: #fff;
+transition-property: all;
+transition-duration: .35s;
+transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.masterButton:checked ~ .mobileButton {
+opacity: 1;
+}
+
+.masterButton:checked ~.mobileButton:hover {
+opacity: .9;
+}
+</style>

@@ -1,0 +1,22 @@
+{{#if dataFetched}}
+    {{#if loadDataErr}}
+        <div class="block-footer">
+            <span class="error-message">
+                {{str "LBL_QUALIAINTEGRATION_LOAD_SETTINGS_ERROR"}}
+            </span>
+            <span class="exit-page">
+                <a href="#Home">
+                    {{str "LBL_QUALIAINTEGRATION_EXIT_PAGE"}}
+                </a>
+            </span>
+        </div>
+    {{else}}
+        {{partial "headerpane.qualia-admin-panel" this view=this}}
+
+        {{partial "default.qualia-admin-panel" this view=this}}
+    {{/if}}
+{{else}}
+    <div class="block-footer">
+        <i class="fa fa-spinner fa-spin fa-3x fa-fw"></i>
+    </div>
+{{/if}}

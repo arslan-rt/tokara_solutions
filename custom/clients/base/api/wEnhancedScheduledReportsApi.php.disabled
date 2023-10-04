@@ -1,0 +1,60 @@
+<?php
+
+use Sugarcrm\Sugarcrm\custom\wsystems\wEnhancedScheduledReports\Traits\BeanHandlerTrait;
+
+/**
+ **** wEnhancedScheduledReportsApi ***
+ *
+ * This class manipulates custom configuration table and send data from Sugar to wTransit application.
+ *
+ * @package wEnhancedScheduledReports
+ * @author Mirel Ivan
+ * @version 4.08
+ * @since SugarCRM 10.0
+ * @since PHP 7.1
+ */
+class wEnhancedScheduledReportsApi extends SugarApi
+{
+    use BeanHandlerTrait;
+
+    public function registerApiRest()
+    {
+        return array(
+            "getReportSchedules" => array(
+                "reqType"   => "POST",
+                "path"      => ["wEnhancedScheduledReports", "get", "report", "schedules"],
+                "pathVars"  => ["", "", "", ""],
+                "method"    => "getReportSchedulesType",
+                "shortHelp" => "Get Report Schedules Type",
+                "longHelp"  => "",
+            ),
+        );
+    }
+
+    /**
+     * Check for support project linked to the current account
+     *
+     * @param ServiceBase $api
+     * @param array $args
+     * @return array
+     */
+    public function getReportSchedulesType(ServiceBase $api, array $args): array
+    {
+        if (empty($args["recordId"]) === false) {
+            $reportSchedulesBean = $this->beanGet("Reports", $args["recordId"], false);
+            if ($reportSchedulesBean->report_type === "tabular") {
+                return [
+                    "success" => true,
+                ];
+            }
+
+            return [
+                "success" => false,
+            ];
+        } else {
+            return [
+                "success" => false,
+            ];
+        }
+    }
+}

@@ -1,0 +1,47 @@
+<div>
+    <div class="record">
+        {{#each this.view.meta.panels}}
+            {{#unless header}}
+                <span class="{{#if hide}}hide{{/if}}" data-panelname="{{name}}">
+                    <div class="row-fluid record-panel-header panel-inactive" tabindex="-1">
+                        <h4 class="pull-left">
+                            {{str label ../../this.module}}
+                        </h4>
+                    </div>
+
+                    <div class="form-horizontal">
+                        <fieldset class="card2">
+                            {{#each grids}}
+                                <div class="row-fluid control-group {{name}}">
+                                    {{#each this}}
+                                        {{#if ../../labels}}
+                                            {{#unless dismiss_label}}
+                                                <div class="control-label span{{labelSpan}}">
+                                                    <div class="control-label-background span{{labelSpan}}">
+                                                        <label class="tright record-label  {{css_class}}"
+                                                            data-name="{{name}}">
+                                                            {{str label ../../../../../../view.module}}
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            {{/unless}}
+                                        {{/if}}
+                                        <div class="controls span{{span}} record-cell {{css_class}}"
+                                            data-type="{{type}}" data-name="{{name}}">
+                                            {{#if name}}
+                                                <span class="normal index{{index}}" {{#if name}}
+                                                    data-fieldname="{{name}}" {{/if}} data-index="{{index}}">
+                                                    {{field ../../../../../view model=../../../../../view.model template=view}}
+                                                </span>
+                                            {{/if}}
+                                        </div>
+                                    {{/each}}
+                                </div>
+                            {{/each}}
+                        </fieldset>
+                    </div>
+                </span>
+            {{/unless}}
+        {{/each}}
+    </div>
+</div>
