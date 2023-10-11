@@ -3,7 +3,7 @@
 $app_list_strings['acc_fields_mapping'] = array(
   'id' => 'qualia_id',
   'name' => 'name',
-  'email' => 'email1',
+  // 'email' => 'email1',
   'nationalLicenseID' => 'national_license_id',
   'type' => 'account_type',
   'phone' => ['phone_office', 'phone_alternate'],
