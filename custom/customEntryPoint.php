@@ -33,7 +33,18 @@ function getApiResponseMethod()
 
 function mapOrdersData($lastModefiedOrders, $url, $authKey, $orders_field_mapping, $contacts_fields_mapping, $acc_fields_mapping, $loans_fields_mapping, $properties_fields_mapping){
     global $db;
+
+    // mapping of Account Types
+    $accTypeMapping = [
+        'listingagency' => 'ListingAgencies',
+        'lender' => 'Lenders',
+        'underwriter' => 'Underwriters',
+        'recordingoffice' => 'RecordingOffices',
+        'taxauthority' => 'TaxAuthorities'
+    ];
+
     foreach ($lastModefiedOrders as $orderId) {
+
         $orderData = QualiaApiHelper::getOrderRecordData($url, $authKey,  $orderId); 
 
         if ($orderData) {
@@ -43,7 +54,7 @@ function mapOrdersData($lastModefiedOrders, $url, $authKey, $orders_field_mappin
             $orderTable = 'order_rq_order';
             $orderBean = qualiaBean($orderTable, $qualia_id, 'Order_RQ_Order');
             
-            $rq_ids = [];
+            
             $contact_ids = [];
 
             // Update order fields
@@ -104,30 +115,33 @@ function mapOrdersData($lastModefiedOrders, $url, $authKey, $orders_field_mappin
                                                 }
             
                                                 $contactBean->save();
-                                                        
-                                                $RQ_partyBean = BeanFactory::newBean('Party_RQ_Party');
-                                                if($RQ_partyBean) {
-                                                    $RQ_partyBean->party_type = ucfirst($qualiaContactType);
-                                                    $RQ_partyBean->name = $contactBean->first_name . ' ' . $contactBean->last_name;
-                                                    $RQ_partyBean->parent_id = $contactBean->id;
-                                                }
-                                                
-                                                $RQ_partyBean->save();
-            
-                                                $stmt = "UPDATE party_rq_party
-                                                SET    parent_type = 'Contacts'
-                                                WHERE  id = '". $RQ_partyBean->id ."'
-                                                        AND deleted = 0;";
-                                                $db->query($stmt);
-                                                
-                                                $rq_ids[$RQ_partyBean->id] = $RQ_partyBean->id;
+
+                                                $rq_id = createRQ_PartyBean($orderBean, $contactBean, $qualiaContactType, 'Contacts');   
+
+                                                // foreach($rq_ids as $rq_id) {
+                                                    if ($contactBean->load_relationship('party_rq_party_contacts')) {
+                                                        $contactBean->party_rq_party_contacts->add($rq_id);
+                                                    }
+                                                // }
+                                                $rq_id = '';
+
                                                 $contact_ids[$contactBean->id] = $contactBean->id;
                                                 $contactBean = null;
-                                                $RQ_partyBean = null;
+
                                             }
                                         }
                                     }
-                                    $accountBean->save();  
+
+                                    $accountBean->save(); 
+                                    $convertedString = str_replace('_', '', strtolower($accountBean->account_type));
+                                    $rq_id = createRQ_PartyBean($orderBean, $accountBean, $accTypeMapping[$convertedString], 'Accounts');   
+
+                                    // foreach($rq_ids as $rq_id) {
+                                        if ($accountBean->load_relationship('party_rq_party_accounts')) {
+                                            $accountBean->party_rq_party_accounts->add($rq_id);
+                                        }
+                                    // }
+                                    $rq_id = '';
                                 }
                             }
                         }
@@ -146,13 +160,7 @@ function mapOrdersData($lastModefiedOrders, $url, $authKey, $orders_field_mappin
             }
 
             $orderBean->save();
-            
-            foreach($rq_ids as $rq_id) {
-                if ($orderBean->load_relationship('party_rq_party_order_rq_order')) {
-                    $orderBean->party_rq_party_order_rq_order->add($rq_id);
-                }
-            }
-    
+
             foreach($contact_ids as $contact_id) {
                 if ($orderBean->load_relationship('order_linked_contacts')) {
                     $orderBean->order_linked_contacts->add($contact_id);
@@ -164,6 +172,58 @@ function mapOrdersData($lastModefiedOrders, $url, $authKey, $orders_field_mappin
             } 
         }
     } 
+
+}
+
+/**
+ * Create and save a Party_RQ_Party bean associated with an order.
+ *
+ * @param SugarBean $orderBean    The order SugarBean.
+ * @param SugarBean $bean         The bean associated with the party.
+ * @param string    $RQ_PartyType The type of Party_RQ_Party.
+ * @param string    $mod          The parent type for Party_RQ_Party.
+ *
+ * @return string The ID of the created Party_RQ_Party bean.
+ */
+function createRQ_PartyBean($orderBean, $bean, $RQ_PartyType, $mod) {
+    global $db;
+    $rq_id = '';
+
+    // Create a new Party_RQ_Party bean
+    $RQ_partyBean = BeanFactory::newBean('Party_RQ_Party');
+
+    // Update the parent_type in the database
+    if($RQ_partyBean) {
+        // Set properties for Party_RQ_Party
+        $RQ_partyBean->party_type = ucfirst($RQ_PartyType);
+        $RQ_partyBean->name = $bean->name;  
+        if(empty($RQ_partyBean->name)) {
+            $RQ_partyBean->name = $bean->first_name . ' ' . $bean->last_name;
+        }
+        $RQ_partyBean->parent_id = $bean->id;
+    }
+    
+    // Save the Party_RQ_Party bean
+    $RQ_partyBean->save();
+
+    // Update the parent_type in the database
+    $stmt = "UPDATE party_rq_party
+    SET    parent_type = '". $mod ."'
+    WHERE  id = '". $RQ_partyBean->id ."'
+            AND deleted = 0;";
+    $db->query($stmt);
+ 
+    // Get the ID of the Party_RQ_Party bean
+    $rq_id = $RQ_partyBean->id;
+
+    // Link the order to the RQ_Party relationship 
+    if ($orderBean->load_relationship('party_rq_party_order_rq_order')) {
+        $orderBean->party_rq_party_order_rq_order->add($rq_id);
+    }
+
+    // Release memory by setting the Party_RQ_Party bean to null
+    $RQ_partyBean = null;
+    return $rq_id;
 }
 
 /**
@@ -197,10 +257,11 @@ function mapAccountsData($accounts, $url, $authKey, $acc_fields_mapping) {
             
             // Save the account bean
             $accBean->save();
-            $limit++;  if (isset($acc_fields_mapping[$field])) {
+            $limit++;  
+            if (isset($acc_fields_mapping[$field])) {
                     $sugarField = $acc_fields_mapping[$field];
                     mapfields($sugarField, $accBean, $val);
-                }
+            }
         }
     } 
 }
@@ -283,7 +344,22 @@ function mapModuledata($fields, $module, $fields_mapping, $orderBean) {
 
         $bean->name = $orderBean->order_number;
         $bean->save();
+
+        // Link loans and properties to the RQ_Party
+        if($module == 'Loans_Loans') {
+            $rq_id = createRQ_PartyBean($orderBean, $bean, 'Loan', 'Loans_Loans');  
+            if ($bean->load_relationship('party_rq_party_loans_loans')) {
+                $bean->party_rq_party_loans_loans->add($rq_id);
+            }
+        }else {
+            $rq_id = createRQ_PartyBean($orderBean, $bean, 'Property', 'Listg_Listings');
+            if ($bean->load_relationship('party_rq_party_listg_listings')) {
+                $bean->party_rq_party_listg_listings->add($rq_id);
+            }
+        }
+
         $bean = null;
+        $rq_id = '';
     }
 }
 
