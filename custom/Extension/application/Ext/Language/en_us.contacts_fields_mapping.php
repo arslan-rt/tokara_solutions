@@ -11,6 +11,6 @@ $app_list_strings['contacts_fields_mapping'] = array(
     'stateLicenseIDs' => [
       'id' => 'state_license_id',
       'state' => 'state_license_state'
-    ],
+    ]
   );
   
