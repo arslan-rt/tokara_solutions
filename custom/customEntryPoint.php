@@ -464,10 +464,12 @@ function mapAndSaveModuleData($fields, $module, $fields_mapping, $orderBean) {
             if (isset($fields_mapping[$sourceField])) {
                 $sugarField = $fields_mapping[$sourceField];
                 mapfields($sugarField, $moduleBean, $value);
+                if ($module == 'Listg_Listings' && !empty($moduleBean->$sugarField)) {
+                    $moduleBean->name = trim($moduleBean->name) . ' ' . $moduleBean->$sugarField;
+                }
             }
         }
 
-        $moduleBean->name = $orderBean->order_number;
         $moduleBean->save();
 
         // Link loans and properties to the RQ_Party

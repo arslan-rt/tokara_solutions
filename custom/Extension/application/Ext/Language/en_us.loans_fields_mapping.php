@@ -1,9 +1,8 @@
 <?php
 
 $app_list_strings['loans_fields_mapping'] = array(
-    'orderNumber' => 'name',
+    'loanNumber' => ['name', 'loan_number'],
     'amount' => 'amount',
     'interestRate' => 'interest_rate',
-    'loanNumber' => 'loan_number',
   );
   

@@ -1,7 +1,6 @@
 <?php
 
 $app_list_strings['properties_fields_mapping'] = array(
-    'orderNumber' => 'name',
     'address1' => 'address',
     'address2' => 'address2',
     'zipcode' => 'zip_code',
