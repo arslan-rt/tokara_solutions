@@ -186,27 +186,27 @@ function mapPaginatedOrdersData($url, $authKey, $orders_field_mapping, $contacts
         'underwriter' => 'Underwriters',
         'recordingoffice' => 'RecordingOffices',
         'taxauthority' => 'TaxAuthorities',
-        'appraisalcompany' => 'Appraisal Companies',
+        'appraisalcompany' => 'AppraisalCompanies',
         'builder' => 'Builders',
-        'creditcardcompany' => 'Credit Card Companies',
-        'exchangeaccommodator' => 'Exchange Accommodators',
-        'eeneralcontractor' => 'General Contractors',
-        'gov.entity' => 'Gov. Entities',
+        'creditcardcompany' => 'CreditCardCompanies',
+        'exchangeaccommodator' => 'ExchangeAccommodators',
+        'eeneralcontractor' => 'GeneralContractors',
+        'gov.entity' => 'Gov.Entities',
         'hoa' => 'HOAs',
-        'hoamanagementcompany' => 'HOA Management Companies',
-        'homewarrantycompany' => 'Home Warranty Companies',
-        'insurancecompany' => 'Insurance Companies',
-        'lawfirm' => 'Law Firms',
+        'hoamanagementcompany' => 'HOAManagementCompanies',
+        'homewarrantycompany' => 'HomeWarrantyCompanies',
+        'insurancecompany' => 'InsuranceCompanies',
+        'lawfirm' => 'LawFirms',
         'notary' => 'Notaries',
-        'payofflender' => 'Payoff Lenders',
-        'pesinspector' => 'Pes Inspectors',
-        'realestateagency' => 'Real Estate Agencies',
-        'releasetracker' => 'Release Trackers',
-        'reomanagementcompany' => 'REO Management Companies',
-        'taxassessor' => 'Tax Assessors',
-        'utilitycompany' => 'Utility Companies',
-        'appprovider' => 'App Providers',
-        'othercompany' => 'Other Companies'
+        'payofflender' => 'PayoffLenders',
+        'pesinspector' => 'PesInspectors',
+        'realestateagency' => 'RealEstateAgencies',
+        'releasetracker' => 'ReleaseTrackers',
+        'reomanagementcompany' => 'REOManagementCompanies',
+        'taxassessor' => 'TaxAssessors',
+        'utilitycompany' => 'UtilityCompanies',
+        'appprovider' => 'AppProviders',
+        'othercompany' => 'OtherCompanies'
     ];
 
     global $db;
@@ -347,38 +347,44 @@ function mapPaginatedOrdersData($url, $authKey, $orders_field_mapping, $contacts
  */
 function createRQPartyBean($orderBean, $bean, $RQ_PartyType, $mod) {
     global $db;
-    $rqPartyId = ''; // Initialize the Party_RQ_Party bean ID.
 
-    // Create a new Party_RQ_Party bean
-    $rqPartyBean = BeanFactory::newBean('Party_RQ_Party');
+    $stmt = "SELECT id 
+    FROM party_rq_party
+    WHERE parent_id = '{$bean->id}' and deleted = 0";
+    $result = $db->fetchOne($stmt);
 
-    // Set properties for Party_RQ_Party
-    if ($rqPartyBean) {
-        $rqPartyBean->party_type = ucfirst($RQ_PartyType);
-        $rqPartyBean->name = $bean->name;
-        if (empty($rqPartyBean->name)) {
-            $rqPartyBean->name = $bean->first_name . ' ' . $bean->last_name;
+    if(!$result){
+        // Create a new Party_RQ_Party bean
+        $rqPartyBean = BeanFactory::newBean('Party_RQ_Party');
+
+        // Set properties for Party_RQ_Party
+        if ($rqPartyBean) {
+            $rqPartyBean->party_type = ucfirst($RQ_PartyType);
+            $rqPartyBean->name = $bean->name;
+            if (empty($rqPartyBean->name)) {
+                $rqPartyBean->name = $bean->first_name . ' ' . $bean->last_name;
+            }
+            $rqPartyBean->parent_id = $bean->id;
         }
-        $rqPartyBean->parent_id = $bean->id;
+
+        // Save the Party_RQ_Party bean
+        $rqPartyBean->save();
+
+        // Update the parent_type in the database
+        $stmt = "UPDATE party_rq_party
+            SET parent_type = '" . $mod . "'
+            WHERE id = '" . $rqPartyBean->id . "'
+            AND deleted = 0;";
+        $db->query($stmt);
+
+        // Link the order to the Party_RQ_Party relationship
+        if ($orderBean->load_relationship('party_rq_party_order_rq_order')) {
+            $orderBean->party_rq_party_order_rq_order->add($rqPartyBean->id);
+        }
+
+        // Release memory by setting the Party_RQ_Party bean to null
+        $rqPartyBean = null;
     }
-
-    // Save the Party_RQ_Party bean
-    $rqPartyBean->save();
-
-    // Update the parent_type in the database
-    $stmt = "UPDATE party_rq_party
-        SET parent_type = '" . $mod . "'
-        WHERE id = '" . $rqPartyBean->id . "'
-        AND deleted = 0;";
-    $db->query($stmt);
-
-    // Link the order to the Party_RQ_Party relationship
-    if ($orderBean->load_relationship('party_rq_party_order_rq_order')) {
-        $orderBean->party_rq_party_order_rq_order->add($rqPartyBean->id);
-    }
-
-    // Release memory by setting the Party_RQ_Party bean to null
-    $rqPartyBean = null;
 }
 
 /**
