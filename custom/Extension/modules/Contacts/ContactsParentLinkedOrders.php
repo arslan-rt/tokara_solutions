@@ -1,5 +1,7 @@
 <?php
 
+namespace Sugarcrm\Sugarcrm\custom\Extension\modules\Contacts;
+
 use DBManagerFactory;
 use Link2;
 use SugarBean;
