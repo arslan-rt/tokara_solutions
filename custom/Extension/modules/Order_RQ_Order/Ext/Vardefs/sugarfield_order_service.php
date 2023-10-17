@@ -1,0 +1,26 @@
+<?php
+$dictionary['Order_RQ_Order']['fields']['order_service'] =
+array(
+    'name'                      => 'order_service',
+    'label'                     => 'Service',
+    'vname'                     => 'Service',
+    'type'                      => 'enum',
+    'massupdate'                => true,
+    'no_default'                => false,
+    'comments'                  => '',
+    'help'                      => '',
+    'importable'                => 'true',
+    'duplicate_merge'           => 'enabled',
+    'duplicate_merge_dom_value' => 1,
+    'audited'                   => false,
+    'reportable'                => true,
+    'unified_search'            => false,
+    'merge_filter'              => 'disabled',
+    'pii'                       => false,
+    'calculated'                => false,
+    'len'                       => 100,
+    'size'                      => '20',
+    'options'                   => 'order_service_list',
+    'default'                   => 'SimultResident',
+    'dependency'                => null,
+);
