@@ -694,6 +694,7 @@ class QualiaApiHelper
                       type
                     }
                     ... on Individual {
+                      ssn
                       cellPhone
                       currentAddress {
                         ...AddressDetails
