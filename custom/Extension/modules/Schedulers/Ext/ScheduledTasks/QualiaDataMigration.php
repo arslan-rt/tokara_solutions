@@ -455,7 +455,9 @@ function mapfields($sugarField, $bean, $value){
                         } else {
                             // Loop through $value and set subSugarField for each entry
                             foreach ($value as $val) {
-                                $bean->$subSugarField = $val[$subField];
+                                if(!empty($val[$subField])){
+                                    $bean->$subSugarField = $val[$subField];
+                                }
                             }
                         }
                     }else {
