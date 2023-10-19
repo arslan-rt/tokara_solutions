@@ -387,7 +387,7 @@ function createRQPartyBean($orderBean, $bean, $RQ_PartyType, $mod) {
     $stmt = "SELECT id 
     FROM party_rq_party
     WHERE parent_id = '{$bean->id}' and deleted = 0";
-    $result = $db->query($stmt);
+    $result = $db->fetchOne($stmt);
 
     if(!$result){
         // Create a new Party_RQ_Party bean
