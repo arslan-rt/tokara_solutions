@@ -510,8 +510,8 @@ function mapAndSaveModuleData($fields, $module, $fields_mapping, $orderBean) {
             if (isset($fields_mapping[$sourceField]) && $moduleBean) {
                 $sugarField = $fields_mapping[$sourceField];
                 mapfields($sugarField, $moduleBean, $value);
-                if ($module == 'Listg_Listings' && !empty($moduleBean->$sugarField)) {
-                    $moduleBean->name = trim($moduleBean->name) . ' ' . $moduleBean->$sugarField;
+                if ($module == 'Listg_Listings' && $sugarField == 'address' && !empty($moduleBean->$sugarField)) {
+                    $moduleBean->name = $moduleBean->$sugarField;
                 }
             }
         };

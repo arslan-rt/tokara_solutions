@@ -8,4 +8,5 @@ $app_list_strings['orders_field_mapping'] = array(
     'purchasePrice' => 'purchase_price',
     'earnestAmount' => 'earnest_money',
     'createdDate' => 'opened_date_for_order_c',
+    'transactionType' => 'transaction_type'
   );
