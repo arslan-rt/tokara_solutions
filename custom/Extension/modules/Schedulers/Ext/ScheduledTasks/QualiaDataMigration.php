@@ -146,7 +146,20 @@ function mapOrdersData($lastModefiedOrders, $url, $authKey, $orders_field_mappin
                             }
                         }
                     }
+                }else if(isset($data['accounting'])  || $data['charges'] || $data['settlementStatement']) {
+                    $qualia_id = $orderBean->order_number;
+                    $financialInfoBean = qualiaBean('tk_financial_info', $qualia_id, 'tk_Financial_Info');
+                    
+                    foreach ($data['accounting'] as $acctField => $acctValue) {
+                        if (isset($accounting_fields_mapping[$acctField]) && $financialInfoBean) {
+                            $sugarField = $accounting_fields_mapping[$acctField];
+                            mapfields($sugarField, $financialInfoBean, $acctValue);
+                        }
+                    }
+                    $financialInfoBean->name = $qualia_id;
+                    $financialInfoBean->save();
                 }
+
 
                 //For Properties
                 if($orderfield == 'properties') {
@@ -547,6 +560,8 @@ function qualiaBean($table, $qualia_id, $module = '') {
         $stmt = "SELECT id FROM $table where address = '{$qualia_id['address1']}' AND zip_code = '{$qualia_id['zipcode']}' AND city = '{$qualia_id['city']}' AND deleted = 0;";
     }else if($module == 'Contacts' && (strpos($qualia_id, 'borrowers') !== false || strpos($qualia_id, 'sellers') !== false)) {
         $stmt = "SELECT id FROM $table where unique_code = '{$qualia_id}' and deleted = 0";
+    }else if($module == 'tk_Financial_Info') {
+        $stmt = "SELECT id FROM $table where order_number = '{$qualia_id}' and deleted = 0";
     }
     else {
         $stmt = "SELECT id FROM  $table  where qualia_id = '{$qualia_id}' and deleted = 0";

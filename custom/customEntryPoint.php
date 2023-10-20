@@ -23,7 +23,7 @@ function getApiResponseMethod()
     $properties_fields_mapping = $app_list_strings['properties_fields_mapping'];
     $contacts_fields_mapping = $app_list_strings['contacts_fields_mapping'];
     $loans_fields_mapping = $app_list_strings['loans_fields_mapping'];
-
+    $accounting_fields_mapping = $app_list_strings['accounting_fields_mapping'];
     // mapAccountsData($accounts, $url, $authKey, $acc_fields_mapping);
     // mapOrdersData($lastModefiedOrders, $url, $authKey, $orders_field_mapping, $contacts_fields_mapping, $acc_fields_mapping, $loans_fields_mapping, $properties_fields_mapping);
     mapPaginatedOrdersData($url, $authKey, $orders_field_mapping, $contacts_fields_mapping, $acc_fields_mapping, $loans_fields_mapping, $properties_fields_mapping);
@@ -247,116 +247,129 @@ function mapPaginatedOrdersData($url, $authKey, $orders_field_mapping, $contacts
                 $orderBean->save();
 
                 // Process contacts and associated accounts
-                if (isset($data['contacts'])) {
-                    foreach ($data['contacts'] as $qualiaContactType => $index) {
-                        if (!empty($index)) {
-                            foreach ($index as $type) {
-                                foreach ($type as $key => $accField) {
-                                    if($qualiaContactType === 'borrowers' || $qualiaContactType === 'sellers') {
-                                        if ($key == 'ssn' && !empty($accField)) {
-                                            // Remove hyphens and store each value in an array
-                                            $orderId = explode('-', $orderBean->id);
-                                            // Now, you can access each value using the array indices
-                                            $firstPartOrder = $orderId[0];
-                                            $secondPartOrder = $orderId[1];
-                                            $ssn = explode('-', $accField);
-                                            $firstPartSsn = $ssn[0];
-                                            $secondPartSsn = $ssn[1]; 
+                // if (isset($data['contacts'])) {
+                //     foreach ($data['contacts'] as $qualiaContactType => $index) {
+                //         if (!empty($index)) {
+                //             foreach ($index as $type) {
+                //                 foreach ($type as $key => $accField) {
+                //                     if($qualiaContactType === 'borrowers' || $qualiaContactType === 'sellers') {
+                //                         if ($key == 'ssn' && !empty($accField)) {
+                //                             // Remove hyphens and store each value in an array
+                //                             $orderId = explode('-', $orderBean->id);
+                //                             // Now, you can access each value using the array indices
+                //                             $firstPartOrder = $orderId[0];
+                //                             $secondPartOrder = $orderId[1];
+                //                             $ssn = explode('-', $accField);
+                //                             $firstPartSsn = $ssn[0];
+                //                             $secondPartSsn = $ssn[1]; 
 
-                                            $newUniqueCode =  $firstPartOrder .'_'. $firstPartSsn .'_'. $secondPartOrder .'_'. $secondPartSsn . '_' . $qualiaContactType;
-                                            $contactBean = qualiaBean('contacts', $newUniqueCode, 'Contacts');
-                                        }
+                //                             $newUniqueCode =  $firstPartOrder .'_'. $firstPartSsn .'_'. $secondPartOrder .'_'. $secondPartSsn . '_' . $qualiaContactType;
+                //                             $contactBean = qualiaBean('contacts', $newUniqueCode, 'Contacts');
+                //                         }
 
-                                        if ($key !== 'ssn' && isset($contacts_fields_mapping[$key]) && $contactBean) {
-                                            $sugarField = $contacts_fields_mapping[$key];
-                                            mapfields($sugarField, $contactBean, $accField);
-                                            $contactBean->unique_code = $newUniqueCode;
-                                        }
+                //                         if ($key !== 'ssn' && isset($contacts_fields_mapping[$key]) && $contactBean) {
+                //                             $sugarField = $contacts_fields_mapping[$key];
+                //                             mapfields($sugarField, $contactBean, $accField);
+                //                             $contactBean->unique_code = $newUniqueCode;
+                //                         }
                                         
-                                    }else if ($qualiaContactType === 'sourceOfBusiness' && $key === 'company') {
-                                        foreach ($accField as $key => $field) {
-                                            if ($key === 'id' && !empty($field)) {
-                                                $accounts_qualia_id = $field;
-                                                $accountBean = qualiaBean('accounts', $accounts_qualia_id, 'Accounts');
-                                            }
-                                            if (isset($acc_fields_mapping[$key]) && $accountBean) {
-                                                $sugarField = $acc_fields_mapping[$key];
-                                                mapfields($sugarField, $accountBean, $accField);
-                                            }
-                                        }
-                                    }else {
-                                        if ($key === 'id' && !empty($accField)) {
-                                            $accounts_qualia_id = $accField;
-                                            $accountBean = qualiaBean('accounts', $accounts_qualia_id, 'Accounts');
-                                        }
-                                        if (isset($acc_fields_mapping[$key]) && $accountBean) {
-                                            $sugarField = $acc_fields_mapping[$key];
-                                            mapfields($sugarField, $accountBean, $accField);
-                                        }
-                                    }
+                //                     }else if ($qualiaContactType === 'sourceOfBusiness' && $key === 'company') {
+                //                         foreach ($accField as $key => $field) {
+                //                             if ($key === 'id' && !empty($field)) {
+                //                                 $accounts_qualia_id = $field;
+                //                                 $accountBean = qualiaBean('accounts', $accounts_qualia_id, 'Accounts');
+                //                             }
+                //                             if (isset($acc_fields_mapping[$key]) && $accountBean) {
+                //                                 $sugarField = $acc_fields_mapping[$key];
+                //                                 mapfields($sugarField, $accountBean, $accField);
+                //                             }
+                //                         }
+                //                     }else {
+                //                         if ($key === 'id' && !empty($accField)) {
+                //                             $accounts_qualia_id = $accField;
+                //                             $accountBean = qualiaBean('accounts', $accounts_qualia_id, 'Accounts');
+                //                         }
+                //                         if (isset($acc_fields_mapping[$key]) && $accountBean) {
+                //                             $sugarField = $acc_fields_mapping[$key];
+                //                             mapfields($sugarField, $accountBean, $accField);
+                //                         }
+                //                     }
                     
-                                    if ($key === 'associates') {
-                                        foreach ($accField as $contact) {
-                                            foreach ($contact as $field => $val) {
-                                                if ($field === 'id' && !empty($val)) {
-                                                    $contacts_qualia_id = $val;
-                                                    $contactBean = qualiaBean('contacts', $contacts_qualia_id, 'Contacts');
-                                                }
-                                                if (isset($contacts_fields_mapping[$field]) && $contactBean) {
-                                                    $sugarField = $contacts_fields_mapping[$field];
-                                                    mapfields($sugarField, $contactBean, $val);
-                                                }
-                                            }
+                //                     if ($key === 'associates') {
+                //                         foreach ($accField as $contact) {
+                //                             foreach ($contact as $field => $val) {
+                //                                 if ($field === 'id' && !empty($val)) {
+                //                                     $contacts_qualia_id = $val;
+                //                                     $contactBean = qualiaBean('contacts', $contacts_qualia_id, 'Contacts');
+                //                                 }
+                //                                 if (isset($contacts_fields_mapping[$field]) && $contactBean) {
+                //                                     $sugarField = $contacts_fields_mapping[$field];
+                //                                     mapfields($sugarField, $contactBean, $val);
+                //                                 }
+                //                             }
 
-                                            if(!empty($contactBean)){
-                                                $contactBean->save();
+                //                             if(!empty($contactBean)){
+                //                                 $contactBean->save();
 
-                                                if ($contactBean->load_relationship('contact_linked_orders')) {
-                                                    $contactBean->contact_linked_orders->add($orderBean->id);
-                                                }
+                //                                 if ($contactBean->load_relationship('contact_linked_orders')) {
+                //                                     $contactBean->contact_linked_orders->add($orderBean->id);
+                //                                 }
 
-                                                if ($orderBean->load_relationship('order_linked_contacts')) {
-                                                    $orderBean->order_linked_contacts->add($contactBean->id);
-                                                }
+                //                                 if ($orderBean->load_relationship('order_linked_contacts')) {
+                //                                     $orderBean->order_linked_contacts->add($contactBean->id);
+                //                                 }
                                                 
-                                                createRQPartyBean($orderBean, $contactBean, $qualiaContactType, 'Contacts');
-                                                $contactBean = null;
-                                            }
-                                        }
-                                    }
-                                }
+                //                                 createRQPartyBean($orderBean, $contactBean, $qualiaContactType, 'Contacts');
+                //                                 $contactBean = null;
+                //                             }
+                //                         }
+                //                     }
+                //                 }
 
-                                if(!empty($accountBean)){
-                                    $accountBean->save(); 
+                //                 if(!empty($accountBean)){
+                //                     $accountBean->save(); 
 
-                                    $convertedString = str_replace('_', '', strtolower($accountBean->account_type));
-                                    createRQPartyBean($orderBean, $accountBean, $accTypeMapping[$convertedString], 'Accounts');   
+                //                     $convertedString = str_replace('_', '', strtolower($accountBean->account_type));
+                //                     createRQPartyBean($orderBean, $accountBean, $accTypeMapping[$convertedString], 'Accounts');   
                                     
-                                    if ($accountBean->load_relationship('order_rq_order_accounts')) {
-                                        $accountBean->order_rq_order_accounts->add($orderBean->id);
-                                    }
-                                }
+                //                     if ($accountBean->load_relationship('order_rq_order_accounts')) {
+                //                         $accountBean->order_rq_order_accounts->add($orderBean->id);
+                //                     }
+                //                 }
 
-                                if(!empty($contactBean)) {
-                                    if (empty($contactBean->name)) {
-                                        $contactBean->name = $contactBean->first_name + ' ' + $contactBean->last_name;
-                                    }
-                                    $contactBean->save();
+                //                 if(!empty($contactBean)) {
+                //                     if (empty($contactBean->name)) {
+                //                         $contactBean->name = $contactBean->first_name . ' ' . $contactBean->last_name;
+                //                     }
+                //                     $contactBean->save();
 
-                                    if ($contactBean->load_relationship('contact_linked_orders')) {
-                                        $contactBean->contact_linked_orders->add($orderBean->id);
-                                    }
+                //                     if ($contactBean->load_relationship('contact_linked_orders')) {
+                //                         $contactBean->contact_linked_orders->add($orderBean->id);
+                //                     }
 
-                                    if ($orderBean->load_relationship('order_linked_contacts')) {
-                                        $orderBean->order_linked_contacts->add($contactBean->id);
-                                    }
+                //                     if ($orderBean->load_relationship('order_linked_contacts')) {
+                //                         $orderBean->order_linked_contacts->add($contactBean->id);
+                //                     }
                                     
-                                    createRQPartyBean($orderBean, $contactBean, $qualiaContactType, 'Contacts');
-                                    $contactBean = null;
-                                }
-                            }
+                //                     createRQPartyBean($orderBean, $contactBean, $qualiaContactType, 'Contacts');
+                //                     $contactBean = null;
+                //                 }
+                //             }
+                //         }
+                //     }
+                // }else 
+                if(isset($data['accounting'])  || $data['charges'] || $data['settlementStatement']) {
+                    $qualia_id = $orderBean->order_number;
+                    $financialInfoBean = qualiaBean('tk_financial_info', $qualia_id, 'tk_Financial_Info');
+                    
+                    foreach ($data['accounting'] as $acctField => $acctValue) {
+                        if (isset($accounting_fields_mapping[$acctField]) && $financialInfoBean) {
+                            $sugarField = $accounting_fields_mapping[$acctField];
+                            mapfields($sugarField, $financialInfoBean, $acctValue);
                         }
                     }
+                    $financialInfoBean->name = $qualia_id;
+                    $financialInfoBean->save();
                 }
 
                 // Process Properties
@@ -455,7 +468,9 @@ function mapfields($sugarField, $bean, $value){
                         } else {
                             // Loop through $value and set subSugarField for each entry
                             foreach ($value as $val) {
-                                $bean->$subSugarField = $val[$subField];
+                                if(!empty($val[$subField])){
+                                    $bean->$subSugarField = $val[$subField];
+                                }
                             }
                         }
                     }else {
@@ -545,8 +560,9 @@ function qualiaBean($table, $qualia_id, $module = '') {
         $stmt = "SELECT id FROM $table where address = '{$qualia_id['address1']}' AND zip_code = '{$qualia_id['zipcode']}' AND city = '{$qualia_id['city']}' AND deleted = 0;";
     }else if($module == 'Contacts' && (strpos($qualia_id, 'borrowers') !== false || strpos($qualia_id, 'sellers') !== false)) {
         $stmt = "SELECT id FROM $table where unique_code = '{$qualia_id}' and deleted = 0";
-    }
-    else {
+    }else if($module == 'tk_Financial_Info') {
+        $stmt = "SELECT id FROM $table where order_number = '{$qualia_id}' and deleted = 0";
+    }else {
         $stmt = "SELECT id FROM  $table  where qualia_id = '{$qualia_id}' and deleted = 0";
     }
 
