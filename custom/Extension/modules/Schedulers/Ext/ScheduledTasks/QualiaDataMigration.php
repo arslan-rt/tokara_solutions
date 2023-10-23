@@ -146,20 +146,52 @@ function mapOrdersData($lastModefiedOrders, $url, $authKey, $orders_field_mappin
                             }
                         }
                     }
-                }else if(isset($data['accounting'])  || $data['charges'] || $data['settlementStatement']) {
+                }else if(isset($data['accounting'])  || isset($data['charges']) || isset($data['settlementStatement'])) {
                     $qualia_id = $orderBean->order_number;
                     $financialInfoBean = qualiaBean('tk_financial_info', $qualia_id, 'tk_Financial_Info');
                     
-                    foreach ($data['accounting'] as $acctField => $acctValue) {
-                        if (isset($accounting_fields_mapping[$acctField]) && $financialInfoBean) {
-                            $sugarField = $accounting_fields_mapping[$acctField];
-                            mapfields($sugarField, $financialInfoBean, $acctValue);
+                    if(!empty($data['accounting']['disbursements']) || !empty($data['accounting']['disbursementAccounts'])) {
+                        foreach ($data['accounting'] as $acctField => $acctValue) {
+                            if (isset($accounting_fields_mapping[$acctField]) && $financialInfoBean) {
+                                $sugarField = $accounting_fields_mapping[$acctField];
+                                mapfields($sugarField, $financialInfoBean, $acctValue);
+                            }
                         }
                     }
-                    $financialInfoBean->name = $qualia_id;
+                   
+                    $financialInfoBean->order_number = $qualia_id;
+                    $financialInfoBean->name = 'Financial Info - ' . $qualia_id;
                     $financialInfoBean->save();
-                }
+                    
+                    foreach ($data['charges'] as $chargesIndex) {
+                        $chargesBean = qualiaBean('tk_charges', $chargesIndex, 'tk_Charges');
+                        foreach ($chargesIndex as $chargesField => $chargesValue) {
+                            if (isset($charges_fields_mapping[$chargesField]) && $chargesBean) {
+                                $sugarField = $charges_fields_mapping[$chargesField];
+                                mapfields($sugarField, $chargesBean, $chargesValue);
+                            }
+                            if (($sugarField == 'payee_name' || $sugarField == 'section' || $sugarField == 'line_number' ) && !empty($chargesBean->$sugarField) ) {
+                                $chargesBean->name = trim($chargesBean->name) . ' - ' . $chargesBean->$sugarField;
+                            }
+                        }
 
+                        // Find the position of the last hyphen
+                        $lastHyphenPos = strrpos($chargesBean->name, '-');    
+                        if ($lastHyphenPos !== false) { 
+                            $result = trim(substr($chargesBean->name, 0, $lastHyphenPos));
+                            $chargesBean->name = $qualia_id . ' ' . $result;
+                        }
+                        $chargesBean->save();
+
+                        $chargesRelationship = 'tk_financial_info_tk_charges_1';
+                        if ($financialInfoBean->load_relationship($chargesRelationship)) {
+                            $financialInfoBean->$chargesRelationship->add($chargesBean->id);
+                        }
+                        $chargesBean = null; 
+                    }
+
+                    $chargesBean = null; 
+                }
 
                 //For Properties
                 if($orderfield == 'properties') {
@@ -562,8 +594,9 @@ function qualiaBean($table, $qualia_id, $module = '') {
         $stmt = "SELECT id FROM $table where unique_code = '{$qualia_id}' and deleted = 0";
     }else if($module == 'tk_Financial_Info') {
         $stmt = "SELECT id FROM $table where order_number = '{$qualia_id}' and deleted = 0";
-    }
-    else {
+    }else if($module == 'tk_Charges') {
+        $stmt = "SELECT id FROM $table where line_number = '{$qualia_id['lineNumber']}' AND section = '{$qualia_id['section']}' AND payee_name = '{$qualia_id['payeeName']}' AND deleted = 0";
+    }else {
         $stmt = "SELECT id FROM  $table  where qualia_id = '{$qualia_id}' and deleted = 0";
     }
 
