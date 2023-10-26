@@ -240,24 +240,29 @@ class syncOrderApi extends SugarApi
                 
                 foreach ($data['charges'] as $chargesIndex) {
                     $chargesBean = QualiaDataMigratiionHepler::qualiaBean('tk_charges', $chargesIndex, 'tk_Charges');
+                    $name_value = '';
+
                     foreach ($chargesIndex as $chargesField => $chargesValue) {
                         if (!is_array($chargesValue)) {
                             if (isset($charges_fields_mapping[$chargesField]) && $chargesBean) {
                                 $sugarField = $charges_fields_mapping[$chargesField];
                                 QualiaDataMigratiionHepler::mapfields($sugarField, $chargesBean, $chargesValue);
                             }
-                            if (($sugarField == 'payee_name' || $sugarField == 'section' || $sugarField == 'line_number' ) && !empty($chargesBean->$sugarField) ) {
-                                $chargesBean->name = trim($chargesBean->name) . ' - ' . $chargesBean->$sugarField;
-                            }
+                        }
+                     
+                        if($chargesField == "section") {
+                            $name_value .= ' - ' . $chargesBean->section;
+                        }else if($chargesField == "payeeName") {
+                            $name_value .= ' - ' . $chargesBean->payee_name;
+                        }else if($chargesField == "lineNumber") {
+                            $name_value .= ' - ' . $chargesBean->line_number;
                         }
                     }
-
-                    // Find the position of the last hyphen
-                    $lastHyphenPos = strrpos($chargesBean->name, '-');    
-                    if ($lastHyphenPos !== false) { 
-                        $result = trim(substr($chargesBean->name, 0, $lastHyphenPos));
-                        $chargesBean->name = $qualia_id_FI . ' ' . $result;
+                    
+                    if($chargesBean->name == null &&  !empty($name_value)) {
+                        $chargesBean->name = $qualia_id_FI . ' ' . $name_value;
                     }
+            
                     $chargesBean->save();
 
                     $chargesRelationship = 'tk_financial_info_tk_charges_1';

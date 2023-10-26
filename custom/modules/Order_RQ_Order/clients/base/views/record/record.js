@@ -25,13 +25,11 @@
         if(!_.isUndefined(this.model.get('qualia_id'))) {
             app.api.call('read', app.api.buildURL('GetOrder/' + this.model.get("qualia_id")), {}, {
                 success: function(data) {
-                  if (data.success == true) {
-                        app.alert.show('order-synced', {
-                            level: 'success',
-                            messages: 'This Order and its related modules records have been synced successfully!',
-                            autoClose: false
-                        })
-                  }
+                    app.alert.show('order-synced', {
+                        level: 'success',
+                        messages: 'This Order and its related modules records have been synced successfully!',
+                        autoClose: false
+                    });
                 },
                 error: function(e) {
                     console.log('Order API call failed.')
