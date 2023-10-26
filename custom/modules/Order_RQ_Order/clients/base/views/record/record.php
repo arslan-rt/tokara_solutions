@@ -51,12 +51,25 @@ array (
               ),
               1 => 
               array (
+                'type' => 'rowaction',
+                'event' => 'button:sync_order:click',
+                'name' => 'sync_order',
+                'label' => 'LBL_SYNC_ORDER_LABEL',
+                // 'acl_action' => 'create',
+                'module' => 'Order_RQ_Order',
+              ),
+              2 => 
+              array (
+                'type' => 'divider',
+              ),
+              3 => 
+              array (
                 'type' => 'shareaction',
                 'name' => 'share',
                 'label' => 'LBL_RECORD_SHARE_BUTTON',
                 'acl_action' => 'view',
               ),
-              2 => 
+              4 => 
               array (
                 'type' => 'pdfaction',
                 'name' => 'download-pdf',
@@ -64,7 +77,7 @@ array (
                 'action' => 'download',
                 'acl_action' => 'view',
               ),
-              3 => 
+              5 => 
               array (
                 'type' => 'pdfaction',
                 'name' => 'email-pdf',
@@ -72,11 +85,11 @@ array (
                 'action' => 'email',
                 'acl_action' => 'view',
               ),
-              4 => 
+              6 => 
               array (
                 'type' => 'divider',
               ),
-              5 => 
+              7 => 
               array (
                 'type' => 'rowaction',
                 'event' => 'button:find_duplicates_button:click',
@@ -84,7 +97,7 @@ array (
                 'label' => 'LBL_DUP_MERGE',
                 'acl_action' => 'edit',
               ),
-              6 => 
+              8 => 
               array (
                 'type' => 'rowaction',
                 'event' => 'button:duplicate_button:click',
@@ -93,7 +106,7 @@ array (
                 'acl_module' => 'Order_RQ_Order',
                 'acl_action' => 'create',
               ),
-              7 => 
+              9 => 
               array (
                 'type' => 'rowaction',
                 'event' => 'button:audit_button:click',
@@ -101,11 +114,11 @@ array (
                 'label' => 'LNK_VIEW_CHANGE_LOG',
                 'acl_action' => 'view',
               ),
-              8 => 
+              10 => 
               array (
                 'type' => 'divider',
               ),
-              9 => 
+              11 => 
               array (
                 'type' => 'rowaction',
                 'event' => 'button:delete_button:click',
