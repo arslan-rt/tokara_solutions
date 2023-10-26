@@ -59,9 +59,15 @@ function mapPaginatedOrdersData($url, $authKey, $orders_field_mapping, $contacts
         'othercompany' => 'OtherCompanies'
     ];
 
-    global $db;
-    $limit = 5;
-    $cursor = "";
+    global $db, $sugar_config;
+    $limit = intval($sugar_config['additional_js_config']['autherization_creds']['records_limit']);
+
+    if(isset($sugar_config['additional_js_config']['autherization_creds']['last_cursor'])) {
+        $cursor = $sugar_config['additional_js_config']['autherization_creds']['last_cursor'];
+    }else {
+        $cursor = "";
+    }
+   
     $execute = true;
 
     while ($execute) {
@@ -80,6 +86,10 @@ function mapPaginatedOrdersData($url, $authKey, $orders_field_mapping, $contacts
             // Update the cursor
             if ($ordersCount == $count) {
                 $cursor = $order['cursor'];
+                $configuratorObj = new Configurator();
+                //save values in config
+                $configuratorObj->config['additional_js_config']['autherization_creds']['last_cursor'] = $cursor;
+                $configuratorObj->handleOverride();
             }
 
             $data = $order['node'];

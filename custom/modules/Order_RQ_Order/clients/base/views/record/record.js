@@ -11,28 +11,27 @@
 
 ({
     extendsFrom: 'RecordView',
+
     events: {
         'click a[name=sync_order]': 'syncOrderRelatedData',
-
-    },
-    initialize: function (options) {
-        this._super('initialize', [options]);
-        console.log('from Order');
     },
 
     syncOrderRelatedData: function() {
-        console.log('Sync Order clicked', this.model.get('qualia_id'));
         if(!_.isUndefined(this.model.get('qualia_id'))) {
             app.api.call('read', app.api.buildURL('GetOrder/' + this.model.get("qualia_id")), {}, {
                 success: function(data) {
                     app.alert.show('order-synced', {
                         level: 'success',
-                        messages: 'This Order and its related modules records have been synced successfully!',
+                        messages: app.lang.get('LBL_ORDER_SYNC_COMPLETE', 'Order_RQ_Order'),
                         autoClose: false
                     });
                 },
                 error: function(e) {
-                    console.log('Order API call failed.')
+                     app.alert.show('order-sync-failed', {
+                        level: 'error',
+                        messages: app.lang.get('LBL_ORDER_SYNC_FAILED', 'Order_RQ_Order'),
+                        autoClose: false
+                    });
                 }
             });
         }

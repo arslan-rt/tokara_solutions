@@ -461,13 +461,11 @@ class QualiaApiHelper
                 'query' => 'query retrieveOrderIdsChangedAfterLastSync($input:OrdersFilter){ orders(filter:$input)}',
                 'variables' => [
                     'operationName' => 'retrieveOrderIdsChangedAfterLastSync',
-                    
                     'input' => [
                         'lastActivity' => [
                             'start' =>  "2023-09-25T00:00:00Z"
                         ]
                     ]
-                    
                 ]
         ]),
             ['Authorization' => $auth_key,
