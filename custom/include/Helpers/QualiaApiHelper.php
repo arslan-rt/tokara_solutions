@@ -154,6 +154,12 @@ class QualiaApiHelper
                       id
                       createdDate
                       externalReferenceNumber
+                      earnestAmount
+                      estimatedClosing
+                      orderNumber
+                      purchasePrice
+                      status
+                      transactionType
                       contacts {
                         sourceOfBusiness {
                           ...SourceOfBusinessDetails
@@ -264,18 +270,14 @@ class QualiaApiHelper
                         name
                         created
                       }
-                      earnestAmount
-                      estimatedClosing
                       loans {
                         amount
                         interestRate
                         loanNumber
                       }
-                      orderNumber
                       properties {
                         ...PropertyDetails
                       }
-                      purchasePrice
                       settlementStatement {
                         lines {
                           description
@@ -305,14 +307,12 @@ class QualiaApiHelper
                           ...AddressDetails
                         }
                       }
-                      status
                       tasks {
                         label
                         assigneeName
                         due
                         completed
                       }
-                      transactionType
                     }
                   }
                   
@@ -353,6 +353,7 @@ class QualiaApiHelper
                       type
                     }
                     ... on Individual {
+                      ssn
                       cellPhone
                       currentAddress {
                         ...AddressDetails
@@ -460,13 +461,11 @@ class QualiaApiHelper
                 'query' => 'query retrieveOrderIdsChangedAfterLastSync($input:OrdersFilter){ orders(filter:$input)}',
                 'variables' => [
                     'operationName' => 'retrieveOrderIdsChangedAfterLastSync',
-                    
                     'input' => [
                         'lastActivity' => [
                             'start' =>  "2023-09-25T00:00:00Z"
                         ]
                     ]
-                    
                 ]
         ]),
             ['Authorization' => $auth_key,

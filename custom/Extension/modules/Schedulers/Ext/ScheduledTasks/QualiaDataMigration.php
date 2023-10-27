@@ -8,9 +8,6 @@ function QualiaDataMigration()
     $response = QualiaApiHelper::getApiData();
     global $app_list_strings;
     
-    // $accounts = $response['Accounts']['data']['companyContacts'];
-    // $accounts = $response['Accounts'][0]['data']['companyContacts'];
-    // $lastModefiedOrders = $response['LastModifiedOrders']['data']['orders'];
     $authKey = $response['auth_key'];
     $url = $response['url'];
 
@@ -20,163 +17,17 @@ function QualiaDataMigration()
     $properties_fields_mapping = $app_list_strings['properties_fields_mapping'];
     $contacts_fields_mapping = $app_list_strings['contacts_fields_mapping'];
     $loans_fields_mapping = $app_list_strings['loans_fields_mapping'];
+    $accounting_fields_mapping = $app_list_strings['accounting_fields_mapping'];
+    $charges_fields_mapping = $app_list_strings['charges_fields_mapping'];
+    $settlement_statement_fields_mapping = $app_list_strings['settlement_statement_fields_mapping'];
 
-    // mapAccountsData($accounts, $url, $authKey, $acc_fields_mapping);
-    // mapOrdersData($lastModefiedOrders, $url, $authKey, $orders_field_mapping, $contacts_fields_mapping, $acc_fields_mapping, $loans_fields_mapping, $properties_fields_mapping);
-    mapPaginatedOrdersData($url, $authKey, $orders_field_mapping, $contacts_fields_mapping, $acc_fields_mapping, $loans_fields_mapping, $properties_fields_mapping);
+    mapPaginatedOrdersData($url, $authKey, $orders_field_mapping, $contacts_fields_mapping, $acc_fields_mapping, $loans_fields_mapping, $properties_fields_mapping, $accounting_fields_mapping, $charges_fields_mapping, $settlement_statement_fields_mapping);
     echo "Testing...";
 
     return true;
 }
 
-
-
-function mapOrdersData($lastModefiedOrders, $url, $authKey, $orders_field_mapping, $contacts_fields_mapping, $acc_fields_mapping, $loans_fields_mapping, $properties_fields_mapping){
-    global $db;
-
-    // mapping of Account Types
-    $accTypeMapping = [
-        'listingagency' => 'ListingAgencies',
-        'lender' => 'Lenders',
-        'underwriter' => 'Underwriters',
-        'recordingoffice' => 'RecordingOffices',
-        'taxauthority' => 'TaxAuthorities'
-    ];
-
-    foreach ($lastModefiedOrders as $orderId) {
-
-        $orderData = QualiaApiHelper::getOrderRecordData($url, $authKey,  $orderId); 
-
-        if ($orderData) {
-            $data = $orderData['data']['order'];
-            $qualia_id = $data["id"];
-            
-            $orderTable = 'order_rq_order';
-            $orderBean = qualiaBean($orderTable, $qualia_id, 'Order_RQ_Order');
-            
-            
-            $contact_ids = [];
-
-            // Update order fields
-            foreach ($data as $orderfield => $orderval) {
-                if (isset($orders_field_mapping[$orderfield]) && $orderBean) {
-                    $sugarField = $orders_field_mapping[$orderfield];
-                    mapfields($sugarField, $orderBean, $orderval);
-                }
-
-                if($orderfield == "orderNumber") {
-                    $orderNum = $orderBean->order_number;
-                }
-                $orderBean->name = $orderNum;
-
-                // all contacts and associated accounts
-                if($orderfield == "contacts") {
-                    foreach($orderval as $qualiaContactType => $index) {
-                        if($qualiaContactType !== "borrowers" && $qualiaContactType !== "sellers") {
-                            if(!empty($index)){
-                                foreach($index as $type) {
-                                    foreach($type as $key => $accField) {
-                                        if($qualiaContactType == "sourceOfBusiness" && $key == "company") {
-                                            foreach($accField as $key => $field) {
-                                                if($key == "id" && !empty($field)) {
-                                                    $accounts = 'accounts';
-                                                    $accounts_qualia_id = $field;
-                                                    $accountBean = qualiaBean($accounts, $field, 'Accounts');       
-                                                }
-                                                if (isset($acc_fields_mapping[$key]) && $accountBean) {
-                                                    $sugarField = $acc_fields_mapping[$key];
-                                                    mapfields($sugarField, $accountBean, $accField);
-                                                }
-                                            }
-                                        }else {
-                                            if($key == "id" && !empty($accField)) {
-                                                $accounts = 'accounts';
-                                                $accounts_qualia_id = $accField;
-                                                $accountBean = qualiaBean($accounts, $accField, 'Accounts');       
-                                            }
-                                            if (isset($acc_fields_mapping[$key]) && $accountBean) {
-                                                $sugarField = $acc_fields_mapping[$key];
-                                                mapfields($sugarField, $accountBean, $accField);
-                                            }                                        
-                                        }
-                                    
-                                        if($key == "associates") {
-                                            foreach($accField as $contact) {
-                                                foreach($contact as $field => $val) {
-                                                    if($field == "id" && !empty($val)) {
-                                                        $contacts_qualia_id = $val;
-                                                        $contactBean = qualiaBean($orderfield, $contacts_qualia_id, 'Contacts');
-                                                    }
-                                                    if (isset($contacts_fields_mapping[$field]) && $contactBean) {
-                                                        $sugarField = $contacts_fields_mapping[$field];
-                                                        mapfields($sugarField, $contactBean, $val);
-                                                    }
-                                                    
-                                                }
-            
-                                                $contactBean->save();
-
-                                                $rqPartyId = createRQPartyBean($orderBean, $contactBean, $qualiaContactType, 'Contacts');   
-
-                                                // foreach($rqPartyIds as $rqPartyId) {
-                                                    if ($contactBean->load_relationship('party_rq_party_contacts')) {
-                                                        $contactBean->party_rq_party_contacts->add($rqPartyId);
-                                                    }
-                                                // }
-                                                $rqPartyId = '';
-
-                                                $contact_ids[$contactBean->id] = $contactBean->id;
-                                                $contactBean = null;
-
-                                            }
-                                        }
-                                    }
-
-                                    $accountBean->save(); 
-                                    $convertedString = str_replace('_', '', strtolower($accountBean->account_type));
-                                    $rqPartyId = createRQPartyBean($orderBean, $accountBean, $accTypeMapping[$convertedString], 'Accounts');   
-
-                                    // foreach($rqPartyIds as $rqPartyId) {
-                                        if ($accountBean->load_relationship('party_rq_party_accounts')) {
-                                            $accountBean->party_rq_party_accounts->add($rqPartyId);
-                                        }
-                                    // }
-                                    $rqPartyId = '';
-                                }
-                            }
-                        }
-                    }
-                }
-
-                //For Properties
-                if($orderfield == 'properties') {
-                    mapAndSaveModuleData($orderval, 'Listg_Listings', $properties_fields_mapping, $orderBean);
-                }
-
-                // For Loans
-                if($orderfield == 'loans') {
-                    mapAndSaveModuleData($orderval, 'Loans_Loans', $loans_fields_mapping, $orderBean);
-                }
-            }
-
-            $orderBean->save();
-
-            foreach($contact_ids as $contact_id) {
-                if ($orderBean->load_relationship('order_linked_contacts')) {
-                    $orderBean->order_linked_contacts->add($contact_id);
-                }
-
-                if ($orderBean->load_relationship('contact_linked_orders')) {
-                    $orderBean->contact_linked_orders->add($contact_id);
-                }
-            } 
-        }
-    } 
-
-}
-
-
-function mapPaginatedOrdersData($url, $authKey, $orders_field_mapping, $contacts_fields_mapping, $acc_fields_mapping, $loans_fields_mapping, $properties_fields_mapping)
+function mapPaginatedOrdersData($url, $authKey, $orders_field_mapping, $contacts_fields_mapping, $acc_fields_mapping, $loans_fields_mapping, $properties_fields_mapping, $accounting_fields_mapping, $charges_fields_mapping, $settlement_statement_fields_mapping)
 {
     // mapping of Account Types
     $accTypeMapping = [
@@ -208,9 +59,15 @@ function mapPaginatedOrdersData($url, $authKey, $orders_field_mapping, $contacts
         'othercompany' => 'OtherCompanies'
     ];
 
-    global $db;
-    $limit = 5;
-    $cursor = "";
+    global $db, $sugar_config;
+    $limit = intval($sugar_config['additional_js_config']['autherization_creds']['records_limit']);
+
+    if(isset($sugar_config['additional_js_config']['autherization_creds']['last_cursor'])) {
+        $cursor = $sugar_config['additional_js_config']['autherization_creds']['last_cursor'];
+    }else {
+        $cursor = "";
+    }
+   
     $execute = true;
 
     while ($execute) {
@@ -229,6 +86,10 @@ function mapPaginatedOrdersData($url, $authKey, $orders_field_mapping, $contacts
             // Update the cursor
             if ($ordersCount == $count) {
                 $cursor = $order['cursor'];
+                $configuratorObj = new Configurator();
+                //save values in config
+                $configuratorObj->config['additional_js_config']['autherization_creds']['last_cursor'] = $cursor;
+                $configuratorObj->handleOverride();
             }
 
             $data = $order['node'];
@@ -273,7 +134,7 @@ function mapPaginatedOrdersData($url, $authKey, $orders_field_mapping, $contacts
                                             $contactBean->unique_code = $newUniqueCode;
                                         }
                                         
-                                    }else if ($qualiaContactType === 'sourceOfBusiness' && $key === 'company') {
+                                    }else if ($qualiaContactType === 'sourceOfBusiness' && $key === 'company' && $accField !== null) {
                                         foreach ($accField as $key => $field) {
                                             if ($key === 'id' && !empty($field)) {
                                                 $accounts_qualia_id = $field;
@@ -357,6 +218,89 @@ function mapPaginatedOrdersData($url, $authKey, $orders_field_mapping, $contacts
                             }
                         }
                     }
+                }
+                if($data['accounting'] || $data['charges'] || $data['settlementStatement']) {
+                    $qualia_id_FI = $orderBean->order_number;
+                    $financialInfoBean = qualiaBean('tk_financial_info', $qualia_id_FI, 'tk_Financial_Info');
+                    
+                    if(!empty($data['accounting']['disbursements']) || !empty($data['accounting']['disbursementAccounts'])) {
+                        foreach ($data['accounting'] as $acctField => $acctValue) {
+                            if (isset($accounting_fields_mapping[$acctField]) && $financialInfoBean) {
+                                $sugarField = $accounting_fields_mapping[$acctField];
+                                mapfields($sugarField, $financialInfoBean, $acctValue);
+                            }
+                        }
+                    }
+
+                    $financialInfoBean->order_number = $qualia_id_FI;
+                    $financialInfoBean->name = 'Financial Info - ' . $qualia_id_FI;
+                    $financialInfoBean->save();
+                    
+                    foreach ($data['charges'] as $chargesIndex) {
+                        $chargesBean = qualiaBean('tk_charges', $chargesIndex, 'tk_Charges');
+                        $name_value = '';
+                    
+                        foreach ($chargesIndex as $chargesField => $chargesValue) {
+                            if (!is_array($chargesValue)) {
+                                if (isset($charges_fields_mapping[$chargesField]) && $chargesBean) {
+                                    $sugarField = $charges_fields_mapping[$chargesField];
+                                    QualiaDataMigratiionHepler::mapfields($sugarField, $chargesBean, $chargesValue);
+                                }
+                            }
+                         
+                            if($chargesField == "section") {
+                                $name_value .= ' - ' . $chargesBean->section;
+                            }else if($chargesField == "payeeName") {
+                                $name_value .= ' - ' . $chargesBean->payee_name;
+                            }else if($chargesField == "lineNumber") {
+                                $name_value .= ' - ' . $chargesBean->line_number;
+                            }
+                        }
+                        
+                        if($chargesBean->name == null &&  !empty($name_value)) {
+                            $chargesBean->name = $qualia_id_FI . ' ' . $name_value;
+                        }
+                
+                        $chargesBean->save();
+
+                        $chargesRelationship = 'tk_financial_info_tk_charges_1';
+                        if ($financialInfoBean->load_relationship($chargesRelationship)) {
+                            $financialInfoBean->$chargesRelationship->add($chargesBean->id);
+                        }
+                        $chargesBean = null; 
+                    }
+
+                    foreach ($data['settlementStatement']['lines'] as $lines) {
+                        $lineBean = qualiaBean('tk_settlementstatementlines', $lines, 'tk_SettlementStatementLines');
+                        
+                        foreach ($lines as $lineField => $lineValue) {
+                            if (isset($settlement_statement_fields_mapping[$lineField]) && $lineBean) {
+                                $sugarField = $settlement_statement_fields_mapping[$lineField];
+                                mapfields($sugarField, $lineBean, $lineValue);
+                            }
+                        }
+                        
+                        if(preg_match('/^[0.]+$/', $lineBean->borrower_amount) && !preg_match('/^[0.]+$/', $lineBean->seller_amount)) {
+                            $lineBean->name = $qualia_id_FI . ' - Seller -' . $lineBean->seller_amount;
+                        }else if(!preg_match('/^[0.]+$/', $lineBean->borrower_amount) && preg_match('/^[0.]+$/', $lineBean->seller_amount)) {
+                            $lineBean->name = $qualia_id_FI . ' - Borrower - ' . $lineBean->borrower_amount;
+                        }else if(preg_match('/^[0.]+$/', $lineBean->borrower_amount) && preg_match('/^[0.]+$/', $lineBean->seller_amount)) {
+                            $lineBean->name = $qualia_id_FI . ' - No Borrower OR Seller';
+                        }else {
+                            $lineBean->name = $qualia_id_FI . ' - No Borrower OR Seller';
+                        }
+                          
+                       
+                        $lineBean->save();
+
+                        $linesRelationship = 'tk_financial_info_tk_settlementstatementlines_1';
+                        if ($financialInfoBean->load_relationship($linesRelationship)) {
+                            $financialInfoBean->$linesRelationship->add($lineBean->id);
+                        }
+                      
+                        $lineBean = null;
+                    }
+
                 }
 
                 // Process Properties
@@ -449,7 +393,9 @@ function mapfields($sugarField, $bean, $value){
                             $exp_arr = explode(":", $subField);
                             $bean->$subSugarField = '';
                             foreach ($exp_arr as $f) {
-                                $bean->$subSugarField .= ' ' . $value[$f];
+                                if(!empty($value[$f])) {
+                                    $bean->$subSugarField .= ' ' . $value[$f];
+                                }
                             }
                             $bean->$subSugarField = trim($bean->$subSugarField);
                         } else {
@@ -547,8 +493,13 @@ function qualiaBean($table, $qualia_id, $module = '') {
         $stmt = "SELECT id FROM $table where address = '{$qualia_id['address1']}' AND zip_code = '{$qualia_id['zipcode']}' AND city = '{$qualia_id['city']}' AND deleted = 0;";
     }else if($module == 'Contacts' && (strpos($qualia_id, 'borrowers') !== false || strpos($qualia_id, 'sellers') !== false)) {
         $stmt = "SELECT id FROM $table where unique_code = '{$qualia_id}' and deleted = 0";
-    }
-    else {
+    }else if($module == 'tk_Financial_Info') {
+        $stmt = "SELECT id FROM $table where order_number = '{$qualia_id}' and deleted = 0";
+    }else if($module == 'tk_Charges') {
+        $stmt = "SELECT id FROM $table where line_number = '{$qualia_id['lineNumber']}' AND section = '{$qualia_id['section']}' AND payee_name = '{$qualia_id['payeeName']}' AND  description = '{$qualia_id['description']}' AND deleted = 0";
+    }else if($module == 'tk_SettlementStatementLines') {
+        $stmt = "SELECT id FROM $table where payee_name_settlement = '{$qualia_id['payeeName']}' AND  description = '{$qualia_id['description']}' AND  borrower_amount = '{$qualia_id['borrowerAmount']}' AND  seller_amount = '{$qualia_id['sellerAmount']}' AND deleted = 0";
+    }else {
         $stmt = "SELECT id FROM  $table  where qualia_id = '{$qualia_id}' and deleted = 0";
     }
 
@@ -558,44 +509,4 @@ function qualiaBean($table, $qualia_id, $module = '') {
     $bean = !empty($data['id']) ? BeanFactory::getBean($module, $data['id']) : BeanFactory::newBean($module); // Create or retrieve the bean
 
     return $bean;
-}
-
-/** 
- * Map and save account data from Qualia API to SugarCRM.
- * 
- * @param array  $accounts          Array of account IDs from Qualia API.
- * @param string $url               Qualia API URL.
- * @param string $authKey           Authentication key for Qualia API.
- * @param array  $acc_fields_mapping Mapping of fields between Qualia API and SugarCRM.
- */
-function mapAccountsData($accounts, $url, $authKey, $acc_fields_mapping) {
-    $limit = 0;
-    if($limit < 10 && count($accounts) > $limit) {
-        foreach ($accounts as $accId) {
-            // Retrieve account data from Qualia API
-            $accFields = QualiaApiHelper::getAccRecordData($url, $authKey, $accId); 
-            $qualia_id = $accFields["data"]["companyContact"]["id"];
-            
-            // Define the SugarCRM accounts table
-            $accountsTable = 'accounts';
-            // Get or create the SugarBean for the account
-            $accBean = qualiaBean($accountsTable, $qualia_id, 'Accounts');
-
-            // Update account fields based on the mapping
-            foreach ($accFields["data"]['companyContact'] as $field => $val) {
-                if (isset($acc_fields_mapping[$field])) {
-                    $sugarField = $acc_fields_mapping[$field];
-                    mapfields($sugarField, $accBean, $val);
-                }
-            }
-            
-            // Save the account bean
-            $accBean->save();
-            $limit++;  
-            if (isset($acc_fields_mapping[$field])) {
-                    $sugarField = $acc_fields_mapping[$field];
-                    mapfields($sugarField, $accBean, $val);
-            }
-        }
-    } 
 }
