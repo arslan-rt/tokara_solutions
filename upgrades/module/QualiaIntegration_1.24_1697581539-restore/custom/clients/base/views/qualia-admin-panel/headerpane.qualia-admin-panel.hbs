@@ -1,0 +1,23 @@
+<div class="headerpane">
+    <h1>
+        {{#each this.view.meta.panels}}
+            {{#if header}}
+                {{#each fields}}
+                    <span class="record-cell" data-type="{{type}}" data-name="{{name}}">
+                        <span class="table-cell-wrapper">
+                            <span class="index" data-fieldname="{{name}}" data-index="">
+                                {{field ../../../this.view model=../../../this.view.model}}
+                            </span>
+                        </span>
+                    </span>
+                {{/each}}
+            {{/if}}
+        {{/each}}
+
+        <div class="btn-toolbar pull-right">
+            {{#each this.view.meta.buttons}}
+                {{field ../this.view}}
+            {{/each}}
+        </div>
+    </h1>
+</div>

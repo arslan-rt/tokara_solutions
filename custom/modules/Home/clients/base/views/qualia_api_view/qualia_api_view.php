@@ -48,6 +48,14 @@ $viewdefs['Home']['base']['view']['qualia_api_view'] = array(
 				array(
                     'name' => 'auth_key',
                     'label' => 'LBL_AUTH_KEY'
+                ),
+                array(
+                    'name' => 'records_limit',
+                    'label' => 'LBL_RECORDS_LIMIT'
+                ),
+                array(
+                    'name' => 'last_cursor',
+                    'label' => 'LBL_LAST_CURSOR'
                 )
             ),
         ),
